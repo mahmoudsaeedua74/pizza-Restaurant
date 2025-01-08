@@ -1,4 +1,4 @@
-import { useLoaderData } from "react-router";
+import { useLoaderData } from "react-router-dom";
 import { getMenu } from "../../services/apiRestaurant";
 import MenuItem from "./MenuItem";
 import CartOverview from "../cart/CartOverview";

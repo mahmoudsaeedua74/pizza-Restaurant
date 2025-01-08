@@ -1,6 +1,6 @@
 import Loader from "./Loader";
 import NavBar from "./NavBar";
-import { Outlet, useNavigation } from "react-router";
+import { Outlet, useNavigation } from "react-router-dom";
 export default function AppLayout() {
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";

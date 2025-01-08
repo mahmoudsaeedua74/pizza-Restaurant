@@ -5,7 +5,7 @@ import visaLogo from "../assets/visaLogo.png";
 import paypal from "../assets/paypal.png";
 import apple from "../assets/get-apple-store.png";
 import google from "../assets/get-google-play.png";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { FaFacebook, FaGoogle, FaInstagram, FaLinkedin } from "react-icons/fa";
 import Button from "./Button";
 export default function Footer() {

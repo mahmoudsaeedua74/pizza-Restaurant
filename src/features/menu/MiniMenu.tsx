@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLoaderData } from "react-router";
+import { useLoaderData } from "react-router-dom";
 import { formatCurrency } from "../../utils/helper";
 import Button from "../../ui/Button";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";

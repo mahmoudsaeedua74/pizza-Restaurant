@@ -1,4 +1,4 @@
-import { useFetcher } from "react-router";
+import { useFetcher } from "react-router-dom";
 import Button from "../../ui/Button";
 import { updateOrder } from "../../services/apiRestaurant";
 
@@ -22,13 +22,13 @@ function UpdateOrder({ order }: UpdateOrderProps) {
     </fetcher.Form>
   );
 }
+
 export default UpdateOrder;
 
 export async function action({
   params,
 }: {
   params: { orderId: string };
-  request: Request;
 }) {
   const data = { priority: true };
 

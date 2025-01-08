@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { IoMenu, IoPizza } from "react-icons/io5";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink } from "react-router-dom";
 import Logo from "../assets/Logo.png";
 import { motion } from "framer-motion";
 

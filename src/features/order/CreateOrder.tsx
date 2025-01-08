@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Form, redirect, useActionData, useNavigation } from "react-router";
+import { Form, redirect, useActionData, useNavigation } from "react-router-dom";
 import { clearItem, getCarts, getTotalPrice } from "../cart/cartSlice";
 import EmptyCart from "../cart/EmptyCart";
 import Button from "../../ui/Button";
@@ -9,18 +9,20 @@ import { createOrder } from "../../services/apiRestaurant";
 import { store } from "../../store";
 import { fetchAddress } from "../user/useSlice";
 
+// Define types for OrderFormData and FormErrors
 interface OrderFormData {
   customer: string;
   phone: string;
   address: string;
   priority: boolean;
-  cart: string[]; // استخدام النوع المناسب هنا
+  cart: string[]; // List of cart item IDs or products
 }
 
 interface FormErrors {
   phone?: string;
 }
 
+// Validate the phone number format using a regular expression
 const isValidPhone = (str: string): boolean =>
   /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(
     str
@@ -32,7 +34,7 @@ function CreateOrder() {
   const [withPriority, setWithPriority] = useState<boolean>(false);
   const isSubmitting = navigation.state === "submitting";
 
-  // Redux
+  // Redux state
   const {
     username,
     status: addressStatus,
@@ -142,34 +144,38 @@ function CreateOrder() {
   );
 }
 
+// Correctly typing the action function
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
-  const data: { [key: string]: FormDataEntryValue } = Object.fromEntries(
-    formData
-  );
+  const data = Object.fromEntries(formData) as Record<string, FormDataEntryValue>; // First, treat it as a general object
 
+  // Now, we map the fields to fit the OrderFormData structure
   const order: OrderFormData = {
-    customer: String(data.customer),
-    phone: String(data.phone),
-    address: String(data.address),
-    priority: data.priority === "true", // تحويل القيمة إلى boolean
-    cart: JSON.parse(String(data.cart)), // تحويل cart إلى مصفوفة
+    customer: data.customer as string,
+    phone: data.phone as string,
+    address: data.address as string,
+    priority: data.priority === "true", // Converts priority from string to boolean
+    cart: JSON.parse(data.cart as string),
   };
 
+  console.log(order);
+
   const errors: FormErrors = {};
-  if (!isValidPhone(order.phone))
-    errors.phone =
-      "Please give us your correct phone number. We might need it to contact you.";
+  if (!isValidPhone(order.phone)) {
+    errors.phone = "Please give us your correct phone number. We might need it to contact you.";
+  }
 
   if (Object.keys(errors).length > 0) return errors;
 
-  // إذا كانت البيانات سليمة، إنشاء الطلب الجديد وإعادة التوجيه
+  // Create new order if everything is okay
   const newOrder = await createOrder(order);
 
-  // مسح العناصر من الـ Cart
+  // Clear the cart after order placement
   store.dispatch(clearItem());
 
+  // Redirect to the order confirmation page
   return redirect(`/order/${newOrder.id}`);
 }
 
 export default CreateOrder;
+

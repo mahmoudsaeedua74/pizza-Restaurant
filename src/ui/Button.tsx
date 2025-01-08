@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 interface ButtonProps {
   children: React.ReactNode;
   disabled?: boolean;

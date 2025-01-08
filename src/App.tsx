@@ -1,14 +1,12 @@
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AppLayout from "./ui/AppLayout";
 import Home from "./ui/Home";
 import Menu, { loader as menuLoader } from "./features/menu/Menu";
 import Cart from "./features/cart/Cart";
 import Error from "./ui/Error";
-import CreateOrder, {
-  action as createOrderAction,
-} from "./features/order/CreateOrder";
-import Order,{ loader as orderLoader } from "./features/order/Order";
-import {  action as updateOrderAction  } from "./features/order/UpataOrder";
+import CreateOrder, { action as createOrderAction } from "./features/order/CreateOrder";
+import Order, { loader as orderLoader } from "./features/order/Order";
+import { action as updateOrderAction } from "./features/order/UpataOrder";
 import { Toaster } from "react-hot-toast";
 import NotFoundPage from "./ui/NotFoundPage";
 
@@ -31,7 +29,6 @@ function App() {
           loader: menuLoader,
           errorElement: <Error />,
         },
-        { path: "", element: <Home /> },
         { path: "/Cart", element: <Cart /> },
         {
           path: "/order/new",
@@ -41,9 +38,9 @@ function App() {
         {
           path: "/order/:orderId",
           element: <Order />,
-          loader: orderLoader,
+          loader: orderLoader,  // هنا يتم معالجة الـ loader لجلب البيانات
           errorElement: <Error />,
-          action: updateOrderAction,
+          action: updateOrderAction, // تحديث الطلب هنا باستخدام الـ action
         },
       ],
     },

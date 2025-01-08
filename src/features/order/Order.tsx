@@ -1,4 +1,4 @@
-import { useLoaderData } from "react-router";
+import { useLoaderData } from "react-router-dom";
 import {
   calcMinutesLeft,
   formatCurrency,
@@ -90,7 +90,7 @@ function Order() {
 }
 
 export async function loader({ params }: { params: { orderId: string } }) {
-  const order = await getOrder(params.orderId);
+  const order = await getOrder(params.orderId);  // جلب البيانات بناءً على orderId
   return order;
 }
 

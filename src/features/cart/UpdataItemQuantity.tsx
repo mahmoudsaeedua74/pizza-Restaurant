@@ -1,13 +1,20 @@
-import Button from "../../ui/Button";
+// src/features/cart/UpdataItemQuantity.tsx
 import { useDispatch, useSelector } from "react-redux";
 import {
+  increaseItemQuantity,
   decreaseItemQuantity,
   getCurrentQuantityById,
-  increaseItemQuantity,
 } from "./cartSlice";
-export default function UpdataItemQuantity({ pizzaId }) {
+import Button from "../../ui/Button";
+
+interface UpdataItemQuantityProps {
+  pizzaId: string; 
+}
+
+const UpdataItemQuantity: React.FC<UpdataItemQuantityProps> = ({ pizzaId }) => {
   const currentQuantity = useSelector(getCurrentQuantityById(pizzaId));
   const dispatch = useDispatch();
+
   return (
     <div className="flex gap-1 items-center md:gap-3">
       <Button
@@ -25,4 +32,6 @@ export default function UpdataItemQuantity({ pizzaId }) {
       </Button>
     </div>
   );
-}
+};
+
+export default UpdataItemQuantity;
