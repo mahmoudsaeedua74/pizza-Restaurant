@@ -1,12 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "commonjs",
-    "strict": true,
-    "skipLibCheck": true,
-    "outDir": "./dist",
-    "esModuleInterop": true
-  },
+  "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
