@@ -1,50 +1,26 @@
-# React + TypeScript + Vite
+# Pizza Ordering App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A pizza ordering web application built using **React**, **TypeScript**, **Redux**, and **Framer Motion**. This project allows users to easily select, customize, and order pizzas with a smooth and interactive experience.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Pizza Selection**: Users can choose from various pizza options and customize them (e.g., size, toppings).
+- **Order Summary**: A dynamic real-time summary of the pizzas added to the order and the total price.
+- **Shopping Cart**: Users can add pizzas to the cart, modify their selection, and proceed to checkout.
+- **Animations**: Smooth animations for page transitions and UI elements using **Framer Motion**.
+- **Responsive Design**: Fully responsive layout optimized for both desktop and mobile screens.
 
-## Expanding the ESLint configuration
+## Technologies Used
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **React**: For building the user interface with reusable components.
+- **TypeScript**: To improve code quality by adding static types and reducing runtime errors.
+- **Redux**: For global state management, ensuring smooth data handling across components.
+- **Framer Motion**: For adding animations and transitions to enhance the user experience.
+- **Tailwind CSS**: For styling the app with a utility-first approach to ensure flexibility and scalability.
 
-- Configure the top-level `parserOptions` property like this:
+## Installation
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/pizza-ordering-app.git
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
