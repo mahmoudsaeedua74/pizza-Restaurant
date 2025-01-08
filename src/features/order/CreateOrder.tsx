@@ -148,7 +148,7 @@ export async function action({
     ...data,
     cart: JSON.parse(data.cart),
     priority: data.priority === "true",
-    phone:data.cart
+    phone: data.phone,
   };
 
   const errors: FormErrors = {};
