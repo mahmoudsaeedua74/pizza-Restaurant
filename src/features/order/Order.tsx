@@ -1,27 +1,23 @@
-import {
-  LoaderFunctionArgs,
-  useFetcher,
-  useLoaderData,
-} from "react-router-dom";
+import { useEffect } from "react";
+import { useFetcher, useLoaderData } from "react-router-dom";
 import {
   calcMinutesLeft,
   formatCurrency,
   formatDate,
 } from "../../utils/helper";
 import OrderItem from "./OrderItem";
+import UpdateOrder from "./UpataOrder";
 import { getOrder } from "../../services/apiRestaurant";
-import { useEffect } from "react";
 
-// تعريف الواجهات لأنواع البيانات
+// تعريف الأنواع الخاصة بالـ props
 interface CartItem {
-  id: string;
-  quantity: number;
+  pizzaId: number;
   name: string;
-  totalPrice: number;
+  quantity: number;
 }
 
 interface OrderData {
-  id: string;
+  id: number;
   status: string;
   priority: boolean;
   priorityPrice: number;
@@ -31,17 +27,18 @@ interface OrderData {
 }
 
 function Order() {
-  const order = useLoaderData() as OrderData; // تحميل البيانات من الـ loader
-  const fetcher = useFetcher(); // لاستخدام fetcher لجلب البيانات بشكل ديناميكي
+  const order = useLoaderData<OrderData>();
+  const fetcher = useFetcher();
 
-  // تحميل البيانات إذا لم تكن موجودة أو إذا كانت الحالة idle
   useEffect(() => {
     if (!fetcher.data && fetcher.state === "idle") {
-      fetcher.load("/menu");
+      fetcher.load("/menu").catch((error) => {
+        console.error("Failed to load menu:", error);
+      });
     }
   }, [fetcher]);
 
-  // استخراج البيانات من order
+  // تفكيك البيانات من الـ order
   const {
     id,
     status,
@@ -52,14 +49,13 @@ function Order() {
     cart,
   } = order;
 
-  // حساب الوقت المتبقي للتوصيل
   const deliveryIn = calcMinutesLeft(estimatedDelivery);
 
   return (
-    <div className="space-y-8 px-4 py-6 container mx-auto mt-20">
-      {/* العنوان وحالة الطلب */}
+    <div className="space-y-8 px-4 py-6 mt-20 mx-auto container">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Order #{id} status</h2>
+
         <div className="space-x-2">
           {priority && (
             <span className="rounded-full bg-red-500 px-3 py-1 text-sm font-semibold uppercase tracking-wide text-red-50">
@@ -72,11 +68,10 @@ function Order() {
         </div>
       </div>
 
-      {/* عرض الوقت المتبقي للتوصيل */}
       <div className="flex flex-wrap items-center justify-between gap-2 bg-stone-200 px-6 py-5">
         <p className="font-medium">
           {deliveryIn >= 0
-            ? `Only ${calcMinutesLeft(estimatedDelivery)} minutes left 😃`
+            ? `Only ${deliveryIn} minutes left 😃`
             : "Order should have arrived"}
         </p>
         <p className="text-xs text-stone-500">
@@ -84,14 +79,20 @@ function Order() {
         </p>
       </div>
 
-      {/* عرض تفاصيل المنتجات في الطلب */}
       <ul className="dive-stone-200 divide-y border-b border-t">
-        {cart.map((item, index) => (
-          <OrderItem item={item} key={index} />
+        {cart.map((item) => (
+          <OrderItem
+            item={item}
+            key={item.pizzaId}
+            isLoadingIngredients={fetcher.state === "loading"}
+            ingredients={
+              fetcher?.data?.find((el) => el.id === item.pizzaId)
+                ?.ingredients ?? []
+            }
+          />
         ))}
       </ul>
 
-      {/* عرض الأسعار الإجمالية للطلب */}
       <div className="space-y-2 bg-stone-200 px-6 py-5">
         <p className="text-sm font-medium text-stone-600">
           Price pizza: {formatCurrency(orderPrice)}
@@ -105,21 +106,16 @@ function Order() {
           To pay on delivery: {formatCurrency(orderPrice + priorityPrice)}
         </p>
       </div>
+
+      {!priority && <UpdateOrder order={order} />}
     </div>
   );
 }
 
-// تعريف loader لجلب بيانات الطلب باستخدام orderId
-
-export async function loader({ params }: LoaderFunctionArgs) {
-  const orderId = params?.orderId;
-
-  if (!orderId) {
-    throw new Error("Order ID is required.");
-  }
-
-  const order = await getOrder(orderId);
-
+// دالة تحميل البيانات
+export async function loader({ params }: { params: { orderId: string } }) {
+  const order = await getOrder(params.orderId);
   return order;
 }
+
 export default Order;

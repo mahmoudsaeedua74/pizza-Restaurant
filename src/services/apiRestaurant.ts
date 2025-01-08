@@ -1,66 +1,65 @@
 const API_URL = "https://react-fast-pizza-api.onrender.com/api";
 
+// تعريف أنواع البيانات المستخدمة
 interface MenuItem {
-  id: number;
+  id: string;
   name: string;
-  unitPrice: number;
+  price: number;
   ingredients: string[];
-  soldOut: boolean;
 }
 
 interface Order {
   id: string;
-  customer: string;
-  phone: string;
-  address: string;
+  status: string;
   priority: boolean;
+  priorityPrice: number;
+  orderPrice: number;
   estimatedDelivery: string;
-  cart: { pizzaId: number; quantity: number }[];
+  cart: { pizzaId: string; name: string; quantity: number; price: number }[];
 }
 
+interface NewOrder {
+  cart: { pizzaId: string; quantity: number }[];
+  priority: boolean;
+}
+
+interface UpdateOrderObj {
+  status?: string;
+  priority?: boolean;
+  priorityPrice?: number;
+}
+
+// جلب قائمة الطعام
 export async function getMenu(): Promise<MenuItem[]> {
   const res = await fetch(`${API_URL}/menu`);
+
   if (!res.ok) throw Error("Failed getting menu");
+
   const { data } = await res.json();
   return data;
 }
 
+// جلب تفاصيل الطلب باستخدام الـ ID
 export async function getOrder(id: string): Promise<Order> {
   const res = await fetch(`${API_URL}/order/${id}`);
   if (!res.ok) throw Error(`Couldn't find order #${id}`);
+
   const { data } = await res.json();
-
-  // التأكد من تعيين قيم افتراضية إذا كانت بعض الخصائص مفقودة
-  const order: Order = {
-    id: data.id || "",
-    customer: data.customer || "Unknown",
-    phone: data.phone || "",
-    address: data.address || "",
-    priority: data.priority || false,
-    estimatedDelivery: data.estimatedDelivery || "",
-    cart: data.cart || [],
-  };
-
-  return order;
+  return data;
 }
 
-export async function createOrder(newOrder: MenuItem[]): Promise<Order> {
+// إنشاء طلب جديد
+export async function createOrder(newOrder: NewOrder): Promise<Order> {
   try {
     const res = await fetch(`${API_URL}/order`, {
       method: "POST",
-      body: JSON.stringify({
-        customer: "Customer Name", // يجب ملء هذا الحقل
-        phone: "Customer Phone", // يجب ملء هذا الحقل
-        address: "Customer Address", // يجب ملء هذا الحقل
-        priority: false, // تحديد أولوية إذا كانت ضرورية
-        estimatedDelivery: "2025-01-01T00:00:00Z", // تحديد وقت التسليم المتوقع
-        cart: newOrder.map((item) => ({ pizzaId: item.id, quantity: 1 })),
-      }),
+      body: JSON.stringify(newOrder),
       headers: {
         "Content-Type": "application/json",
       },
     });
-    if (!res.ok) throw Error();
+
+    if (!res.ok) throw Error("Failed creating your order");
     const { data } = await res.json();
     return data;
   } catch {
@@ -68,10 +67,8 @@ export async function createOrder(newOrder: MenuItem[]): Promise<Order> {
   }
 }
 
-export async function updateOrder(
-  id: string,
-  updateObj: Partial<Order>
-): Promise<void> {
+// تحديث الطلب
+export async function updateOrder(id: string, updateObj: UpdateOrderObj): Promise<void> {
   try {
     const res = await fetch(`${API_URL}/order/${id}`, {
       method: "PATCH",
@@ -80,8 +77,9 @@ export async function updateOrder(
         "Content-Type": "application/json",
       },
     });
-    if (!res.ok) throw Error();
-  } catch {
+
+    if (!res.ok) throw Error("Failed updating your order");
+  } catch  {
     throw Error("Failed updating your order");
   }
 }

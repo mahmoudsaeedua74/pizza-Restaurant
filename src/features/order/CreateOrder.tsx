@@ -10,10 +10,16 @@ import { AppDispatch, RootState, store } from "../../store";
 import { fetchAddress } from "../user/useSlice";
 
 // Define types for OrderFormData and FormErrors
-
-
 interface FormErrors {
   phone?: string;
+}
+
+interface Order {
+  customer: string;
+  phone: string;
+  address: string;
+  cart: any[];  // You might want to define the exact type of items in the cart
+  priority: boolean;
 }
 
 // Validate the phone number format using a regular expression
@@ -44,11 +50,6 @@ function CreateOrder() {
   const totalCartPrice = useSelector(getTotalPrice);
   const priorityPrice = withPriority ? totalCartPrice * 0.2 : 0;
   const totalPrice = totalCartPrice + priorityPrice;
-
-  function handleButton(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    dispatch(fetchAddress());
-  }
 
   if (!cart.length) return <EmptyCart />;
 
@@ -99,12 +100,16 @@ function CreateOrder() {
               </p>
             )}
           </div>
-          {position && !position.latitude && !position.longitude && (
+
+          {!position.latitude && !position.longitude && (
             <span className="absolute right-[3px] top-[3px] z-50 md:right-[5px] md:top-[5px]">
               <Button
                 disabled={isLoadingAddress}
                 type="small"
-                onClick={handleButton}
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(fetchAddress());
+                }}
               >
                 Get position
               </Button>
@@ -140,25 +145,19 @@ function CreateOrder() {
 }
 
 // Correctly typing the action function
-export async function action({
-  request,
-}: {
-  request: Request;
-}): Promise<Response | FormErrors> {
+export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
-  const data = Object.fromEntries(formData) as Record<
-    string,
-    FormDataEntryValue
-  >;
+  const data = Object.fromEntries(formData);
 
-  // Now, we map the fields to fit the OrderFormData structure
-  const order: any = {
-    customer: data.customers as string,
+  const order: Order = {
+    customer: data.customer as string,
     phone: data.phone as string,
     address: data.address as string,
-    priority: data.priority === "true", // Converts priority from string to boolean
-    cart: JSON.parse(data.cart as string), // Ensure cart is parsed into a MenuItem[]
+    cart: JSON.parse(data.cart as string), // Ensure this is a MenuItem[] array
+    priority: data.priority === "true",
   };
+
+  console.log(order);
 
   const errors: FormErrors = {};
   if (!isValidPhone(order.phone)) {
@@ -168,12 +167,13 @@ export async function action({
 
   if (Object.keys(errors).length > 0) return errors;
 
-  // Create new order if everything is okay
+  // If everything is okay, create new order and redirect
   const newOrder = await createOrder(order);
-  // Clear the cart after order placement
+
+  // Do NOT overuse
   store.dispatch(clearItem());
 
-  // Redirect to the order confirmation page
   return redirect(`/order/${newOrder.id}`);
 }
+
 export default CreateOrder;

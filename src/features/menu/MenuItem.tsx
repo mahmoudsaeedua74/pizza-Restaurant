@@ -4,7 +4,7 @@ import Button from "../../ui/Button";
 import { formatCurrency } from "../../utils/helper";
 import UpdataItemQuantity from "../cart/UpdataItemQuantity";
 import DeleteItem from "../cart/DeleteItem";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 // Define the type for the pizza prop
 interface Pizza {
   id: string;
@@ -32,26 +32,14 @@ function MenuItem({ pizza }: MenuItemProps) {
   }
   const currentQuantity = useSelector(getCurrentQuantityById(id));
   const isInCart = currentQuantity > 0;
-  const sectionVariants = {
-    hidden: {
-      opacity: 0,
-    },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.5,
-      },
-    },
-  };
-
   const itemVariants = {
     hidden: {
       opacity: 0,
-      y: 20,
+      y: 40,
     },
     visible: {
       opacity: 1,
-      y: 0,
+      y: 1,
       transition: {
         duration: 0.5,
       },
@@ -59,55 +47,46 @@ function MenuItem({ pizza }: MenuItemProps) {
   };
 
   return (
-    <AnimatePresence mode="sync">
-      <motion.section
-        initial="hidden"
-        animate="visible"
-        variants={sectionVariants}
-        exit={{ opacity: 0, x: -500 }}
-      >
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={itemVariants}
-          className="flex gap-4 py-2 container mx-auto"
-        >
-          <div>
-            <img
-              src={imageUrl}
-              alt={name}
-              className={`h-24 ${soldOut ? "opacity-70 grayscale" : ""}`}
-            />
-          </div>
-          <div className="flex grow flex-col pt-0.5">
-            <p className="font-medium">{name}</p>
-            <p className="text-sm capitalize italic text-stone-500">
-              {ingredients.join(", ")}
-            </p>
-            <div className="mt-auto flex items-center justify-between">
-              {isInCart && (
-                <div className="flex items-center gap-3 sm:gap-8 order-1">
-                  <UpdataItemQuantity pizzaId={id} />
-                  <DeleteItem pizzaId={id} />
-                </div>
-              )}
-              {!soldOut ? (
-                <p className="text-sm">{formatCurrency(unitPrice)}</p>
-              ) : (
-                <p className="text-sm font-medium uppercase text-stone-500 order-2">
-                  Sold out
-                </p>
-              )}
-              {!soldOut && !isInCart && (
-                <Button type="small" onClick={handleAddToCart}>
-                  Add to cart
-                </Button>
-              )}
+    <motion.li
+      initial="hidden"
+      animate="visible"
+      variants={itemVariants}
+      className="flex gap-4 py-2  container mx-auto "
+    >
+      <div>
+        <img
+          src={imageUrl}
+          alt={name}
+          className={`h-24 ${soldOut ? "opacity-70 grayscale" : ""}`}
+        />
+      </div>
+      <div className="flex grow flex-col pt-0.5">
+        <p className="font-medium">{name}</p>
+        <p className="text-sm capitalize italic text-stone-500">
+          {ingredients.join(", ")}
+        </p>
+        <div className="mt-auto flex items-center justify-between">
+          {isInCart && (
+            <div className="flex items-center gap-3 sm:gap-8 order-1">
+              <UpdataItemQuantity pizzaId={id} />
+              <DeleteItem pizzaId={id} />
             </div>
-          </div>
-        </motion.div>
-      </motion.section>
-    </AnimatePresence>
+          )}
+          {!soldOut ? (
+            <p className="text-sm">{formatCurrency(unitPrice)}</p>
+          ) : (
+            <p className="text-sm font-medium uppercase text-stone-500 order-2">
+              Sold out
+            </p>
+          )}
+          {!soldOut && !isInCart && (
+            <Button type="small" onClick={handleAddToCart}>
+              Add to cart
+            </Button>
+          )}
+        </div>
+      </div>
+    </motion.li>
   );
 }
 

@@ -19,7 +19,7 @@ function Menu() {
   const menu = useLoaderData() as Pizza[]; // تحديد نوع البيانات المحملة هنا
 
   return (
-    <ul className="divide-y divide-stone-200 px-2">
+    <ul className=" overflow-hidden mt-24">
       {menu.map((pizza) => (
         <MenuItem pizza={pizza} key={pizza.id} />
       ))}

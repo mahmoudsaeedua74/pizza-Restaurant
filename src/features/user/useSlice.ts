@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getAddress } from "../../services/apiGeocoding";
 
+// تعريف الأنواع الخاصة بالـ state
 interface Position {
   latitude: number;
   longitude: number;
@@ -9,49 +10,53 @@ interface Position {
 interface UserState {
   username: string;
   status: "idle" | "loading" | "error";
-  position: Position | null;
+  position: Position | {};
   address: string;
   error: string;
 }
 
-function getPosition(): Promise<GeolocationPosition> {
-  return new Promise((resolve, reject) =>
-    navigator.geolocation.getCurrentPosition(resolve, reject)
-  );
+interface FetchAddressPayload {
+  position: Position;
+  address: string;
 }
 
-export const fetchAddress = createAsyncThunk<
-  { position: Position; address: string }, 
-  void, 
-  { rejectValue: string }
->(
+// دالة للحصول على الموقع باستخدام الـ Geolocation API
+function getPosition(): Promise<GeolocationPosition> {
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+}
+
+// إنشاء الـ Async Thunk لجلب العنوان
+export const fetchAddress = createAsyncThunk<FetchAddressPayload, void>(
   "user/fetchAddress",
-  async function (_, { rejectWithValue }) {
-    try {
-      const positionObj = await getPosition();
-      const position = {
-        latitude: positionObj.coords.latitude,
-        longitude: positionObj.coords.longitude,
-      };
+  async function () {
+    // 1) الحصول على الموقع الجغرافي للمستخدم
+    const positionObj = await getPosition();
+    const position = {
+      latitude: positionObj.coords.latitude,
+      longitude: positionObj.coords.longitude,
+    };
 
-      const addressObj = await getAddress(position);
-      const address = `${addressObj?.locality}, ${addressObj?.city} ${addressObj?.postcode}, ${addressObj?.countryName}`;
+    // 2) استخدام API الجغرافيا العكسية للحصول على تفاصيل العنوان
+    const addressObj = await getAddress(position);
+    const address = `${addressObj?.locality}, ${addressObj?.city} ${addressObj?.postcode}, ${addressObj?.countryName}`;
 
-      return { position, address };
-    } catch  {
-      return rejectWithValue("There was a problem getting your address. Please try again.");
-    }
+    // 3) إرجاع البيانات المطلوبة
+    return { position, address };
   }
 );
 
+// الحالة الأولية (Initial State)
 const initialState: UserState = {
   username: "",
   status: "idle",
-  position: null,
+  position: {},
   address: "",
   error: "",
 };
 
+// إنشاء الـ Slice
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -70,12 +75,15 @@ const userSlice = createSlice({
         state.address = action.payload.address;
         state.status = "idle";
       })
-      .addCase(fetchAddress.rejected, (state, action) => {
+      .addCase(fetchAddress.rejected, (state) => {
         state.status = "error";
-        state.error = action.payload as string || "There was a problem getting your address.";
+        state.error =
+          "There was a problem getting your address. Make sure to fill this field!";
       }),
 });
 
+// تصدير الأكشنز
 export const { updateName } = userSlice.actions;
 
+// تصدير الـ Reducer
 export default userSlice.reducer;
