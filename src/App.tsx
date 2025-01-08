@@ -7,8 +7,8 @@ import Error from "./ui/Error";
 import CreateOrder, {
   action as createOrderAction,
 } from "./features/order/CreateOrder";
-import Order, { loader as orderLoader } from "./features/order/Order";
-import { action as updateOrderAction } from "./features/order/UpataOrder";
+import Order,{ loader as orderLoader } from "./features/order/Order";
+import {  action as updateOrderAction  } from "./features/order/UpataOrder";
 import { Toaster } from "react-hot-toast";
 import NotFoundPage from "./ui/NotFoundPage";
 
@@ -18,7 +18,11 @@ function App() {
       path: "",
       element: <AppLayout />,
       children: [
-        { path: "/", element: <Home />, loader: menuLoader },
+        {
+          path: "/",
+          element: <Home />,
+          loader: menuLoader,
+        },
         { path: "", element: <Home /> },
         { path: "*", element: <NotFoundPage /> },
         {
@@ -56,7 +60,6 @@ function App() {
           success: {
             duration: 1000,
           },
-
           error: {
             duration: 4000,
           },

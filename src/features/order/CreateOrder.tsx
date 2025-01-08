@@ -8,12 +8,13 @@ import { formatCurrency } from "../../utils/helper";
 import { createOrder } from "../../services/apiRestaurant";
 import { store } from "../../store";
 import { fetchAddress } from "../user/useSlice";
+
 interface OrderFormData {
   customer: string;
   phone: string;
   address: string;
   priority: boolean;
-  cart: string;
+  cart: string[]; // استخدام النوع المناسب هنا
 }
 
 interface FormErrors {
@@ -31,7 +32,7 @@ function CreateOrder() {
   const [withPriority, setWithPriority] = useState<boolean>(false);
   const isSubmitting = navigation.state === "submitting";
 
-  //  Redux
+  // Redux
   const {
     username,
     status: addressStatus,
@@ -143,15 +144,17 @@ function CreateOrder() {
 
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
-  const data = Object.fromEntries(formData);
+  const data: { [key: string]: FormDataEntryValue } = Object.fromEntries(
+    formData
+  );
 
   const order: OrderFormData = {
-    ...data,
-    cart: JSON.parse(data.cart),
-    priority: data.priority === "true",
+    customer: String(data.customer),
+    phone: String(data.phone),
+    address: String(data.address),
+    priority: data.priority === "true", // تحويل القيمة إلى boolean
+    cart: JSON.parse(String(data.cart)), // تحويل cart إلى مصفوفة
   };
-
-  console.log(order);
 
   const errors: FormErrors = {};
   if (!isValidPhone(order.phone))
@@ -160,10 +163,10 @@ export async function action({ request }: { request: Request }) {
 
   if (Object.keys(errors).length > 0) return errors;
 
-  // If everything is okay, create new order and redirect
+  // إذا كانت البيانات سليمة، إنشاء الطلب الجديد وإعادة التوجيه
   const newOrder = await createOrder(order);
 
-  // Do NOT overuse
+  // مسح العناصر من الـ Cart
   store.dispatch(clearItem());
 
   return redirect(`/order/${newOrder.id}`);

@@ -1,35 +1,53 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { getAddress } from "../../services/apiGeocoding";
-function getPosition() {
-  return new Promise(function (resolve, reject) {
-    navigator.geolocation.getCurrentPosition(resolve, reject);
-  });
+
+interface Position {
+  latitude: number;
+  longitude: number;
 }
 
-export const fetchAddress = createAsyncThunk(
+interface UserState {
+  username: string;
+  status: "idle" | "loading" | "error";
+  position: Position | null;
+  address: string;
+  error: string;
+}
+
+function getPosition(): Promise<GeolocationPosition> {
+  return new Promise((resolve, reject) =>
+    navigator.geolocation.getCurrentPosition(resolve, reject)
+  );
+}
+
+export const fetchAddress = createAsyncThunk<
+  { position: Position; address: string }, 
+  void, 
+  { rejectValue: string }
+>(
   "user/fetchAddress",
-  async function () {
-    // 1) We get the user's geolocation position
-    const positionObj = await getPosition();
-    const position = {
-      latitude: positionObj.coords.latitude,
-      longitude: positionObj.coords.longitude,
-    };
+  async function (_, { rejectWithValue }) {
+    try {
+      const positionObj = await getPosition();
+      const position = {
+        latitude: positionObj.coords.latitude,
+        longitude: positionObj.coords.longitude,
+      };
 
-    // 2) Then we use a reverse geocoding API to get a description of the user's address, so we can display it the order form, so that the user can correct it if wrong
-    const addressObj = await getAddress(position);
-    const address = `${addressObj?.locality}, ${addressObj?.city} ${addressObj?.postcode}, ${addressObj?.countryName}`;
+      const addressObj = await getAddress(position);
+      const address = `${addressObj?.locality}, ${addressObj?.city} ${addressObj?.postcode}, ${addressObj?.countryName}`;
 
-    // 3) Then we return an object with the data that we are interested in.
-    // Payload of the FULFILLED state
-    return { position, address };
+      return { position, address };
+    } catch  {
+      return rejectWithValue("There was a problem getting your address. Please try again.");
+    }
   }
 );
 
-const initialState = {
+const initialState: UserState = {
   username: "",
   status: "idle",
-  position: {},
+  position: null,
   address: "",
   error: "",
 };
@@ -38,7 +56,7 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    updateName(state, action) {
+    updateName(state, action: PayloadAction<string>) {
       state.username = action.payload;
     },
   },
@@ -52,10 +70,9 @@ const userSlice = createSlice({
         state.address = action.payload.address;
         state.status = "idle";
       })
-      .addCase(fetchAddress.rejected, (state) => {
+      .addCase(fetchAddress.rejected, (state, action) => {
         state.status = "error";
-        state.error =
-          "There was a problem getting your address. Make sure to fill this field!";
+        state.error = action.payload as string || "There was a problem getting your address.";
       }),
 });
 
