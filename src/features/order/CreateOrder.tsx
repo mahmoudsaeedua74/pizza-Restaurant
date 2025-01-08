@@ -165,8 +165,8 @@ export async function action({
   >;
 
   // Now, we map the fields to fit the OrderFormData structure
-  const order: OrderFormData = {
-    customer: data.customer as string,
+  const order: any = {
+    customer: data.customers as string,
     phone: data.phone as string,
     address: data.address as string,
     priority: data.priority === "true", // Converts priority from string to boolean
