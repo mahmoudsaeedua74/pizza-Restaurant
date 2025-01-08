@@ -10,20 +10,7 @@ import { AppDispatch, RootState, store } from "../../store";
 import { fetchAddress } from "../user/useSlice";
 
 // Define types for OrderFormData and FormErrors
-interface MenuItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
 
-interface OrderFormData {
-  customer: string;
-  phone: string;
-  address: string;
-  priority: boolean;
-  cart: MenuItem[]; // Cart must be an array of MenuItems
-}
 
 interface FormErrors {
   phone?: string;
