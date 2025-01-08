@@ -1,9 +1,8 @@
-import { useRouteError } from "react-router";
+import { useRouteError } from "react-router-dom";
 import LinkButton from "./LinkButton";
 
 function Error() {
-  const error = useRouteError();
-  console.log(error);
+  const error = useRouteError() as { message: string; data?: string }; // تحديد نوع الخطأ
 
   return (
     <div>

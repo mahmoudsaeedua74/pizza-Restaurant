@@ -6,16 +6,23 @@ import EmptyCart from "../cart/EmptyCart";
 import Button from "../../ui/Button";
 import { formatCurrency } from "../../utils/helper";
 import { createOrder } from "../../services/apiRestaurant";
-import { store } from "../../store";
+import { AppDispatch, store } from "../../store";
 import { fetchAddress } from "../user/useSlice";
 
 // Define types for OrderFormData and FormErrors
+interface MenuItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 interface OrderFormData {
   customer: string;
   phone: string;
   address: string;
   priority: boolean;
-  cart: string[]; // List of cart item IDs or products
+  cart: MenuItem[]; // Cart must be an array of MenuItems
 }
 
 interface FormErrors {
@@ -30,7 +37,7 @@ const isValidPhone = (str: string): boolean =>
 
 function CreateOrder() {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const dispatch: AppDispatch = useDispatch();
   const [withPriority, setWithPriority] = useState<boolean>(false);
   const isSubmitting = navigation.state === "submitting";
 
@@ -41,15 +48,20 @@ function CreateOrder() {
     position,
     address,
     error: errorAddress,
-  } = useSelector((state: { userSlice: any }) => state.userSlice);
+  } = useSelector((state) => state.userSlice);
 
   const isLoadingAddress = addressStatus === "loading";
-  const formErrors = useActionData<FormErrors>();
+  const formErrors = useActionData() as FormErrors | null;
   const cartOrder = useSelector(getCarts);
-  const cart = cartOrder;
+  const cart = cartOrder; // Ensure this is a MenuItem[] array
   const totalCartPrice = useSelector(getTotalPrice);
   const priorityPrice = withPriority ? totalCartPrice * 0.2 : 0;
   const totalPrice = totalCartPrice + priorityPrice;
+
+  function handleButton(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    dispatch(fetchAddress());
+  }
 
   if (!cart.length) return <EmptyCart />;
 
@@ -100,16 +112,12 @@ function CreateOrder() {
               </p>
             )}
           </div>
-
           {!position.latitude && !position.longitude && (
             <span className="absolute right-[3px] top-[3px] z-50 md:right-[5px] md:top-[5px]">
               <Button
                 disabled={isLoadingAddress}
                 type="small"
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(fetchAddress());
-                }}
+                onClick={handleButton}
               >
                 Get position
               </Button>
@@ -145,9 +153,16 @@ function CreateOrder() {
 }
 
 // Correctly typing the action function
-export async function action({ request }: { request: Request }) {
+export async function action({
+  request,
+}: {
+  request: Request;
+}): Promise<Response | FormErrors> {
   const formData = await request.formData();
-  const data = Object.fromEntries(formData) as Record<string, FormDataEntryValue>; // First, treat it as a general object
+  const data = Object.fromEntries(formData) as Record<
+    string,
+    FormDataEntryValue
+  >;
 
   // Now, we map the fields to fit the OrderFormData structure
   const order: OrderFormData = {
@@ -155,27 +170,23 @@ export async function action({ request }: { request: Request }) {
     phone: data.phone as string,
     address: data.address as string,
     priority: data.priority === "true", // Converts priority from string to boolean
-    cart: JSON.parse(data.cart as string),
+    cart: JSON.parse(data.cart as string), // Ensure cart is parsed into a MenuItem[]
   };
-
-  console.log(order);
 
   const errors: FormErrors = {};
   if (!isValidPhone(order.phone)) {
-    errors.phone = "Please give us your correct phone number. We might need it to contact you.";
+    errors.phone =
+      "Please give us your correct phone number. We might need it to contact you.";
   }
 
   if (Object.keys(errors).length > 0) return errors;
 
   // Create new order if everything is okay
   const newOrder = await createOrder(order);
-
   // Clear the cart after order placement
   store.dispatch(clearItem());
 
   // Redirect to the order confirmation page
   return redirect(`/order/${newOrder.id}`);
 }
-
 export default CreateOrder;
-

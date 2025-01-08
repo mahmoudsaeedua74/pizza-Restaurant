@@ -20,22 +20,42 @@ interface Order {
 
 export async function getMenu(): Promise<MenuItem[]> {
   const res = await fetch(`${API_URL}/menu`);
-  // fetch won't throw error on 400 errors (e.g. when URL is wrong), so we need to do it manually. This will then go into the catch block, where the message is set
   if (!res.ok) throw Error("Failed getting menu");
   const { data } = await res.json();
   return data;
 }
+
 export async function getOrder(id: string): Promise<Order> {
   const res = await fetch(`${API_URL}/order/${id}`);
   if (!res.ok) throw Error(`Couldn't find order #${id}`);
   const { data } = await res.json();
-  return data;
+
+  // التأكد من تعيين قيم افتراضية إذا كانت بعض الخصائص مفقودة
+  const order: Order = {
+    id: data.id || "",
+    customer: data.customer || "Unknown",
+    phone: data.phone || "",
+    address: data.address || "",
+    priority: data.priority || false,
+    estimatedDelivery: data.estimatedDelivery || "",
+    cart: data.cart || [],
+  };
+
+  return order;
 }
+
 export async function createOrder(newOrder: MenuItem[]): Promise<Order> {
   try {
     const res = await fetch(`${API_URL}/order`, {
       method: "POST",
-      body: JSON.stringify(newOrder),
+      body: JSON.stringify({
+        customer: "Customer Name", // يجب ملء هذا الحقل
+        phone: "Customer Phone", // يجب ملء هذا الحقل
+        address: "Customer Address", // يجب ملء هذا الحقل
+        priority: false, // تحديد أولوية إذا كانت ضرورية
+        estimatedDelivery: "2025-01-01T00:00:00Z", // تحديد وقت التسليم المتوقع
+        cart: newOrder.map((item) => ({ pizzaId: item.id, quantity: 1 })),
+      }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -47,6 +67,7 @@ export async function createOrder(newOrder: MenuItem[]): Promise<Order> {
     throw Error("Failed creating your order");
   }
 }
+
 export async function updateOrder(
   id: string,
   updateObj: Partial<Order>
@@ -60,7 +81,6 @@ export async function updateOrder(
       },
     });
     if (!res.ok) throw Error();
-    // We don't need the data, so we don't return anything
   } catch {
     throw Error("Failed updating your order");
   }

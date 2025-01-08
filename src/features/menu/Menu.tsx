@@ -1,37 +1,36 @@
 import { useLoaderData } from "react-router-dom";
 import { getMenu } from "../../services/apiRestaurant";
 import MenuItem from "./MenuItem";
-import CartOverview from "../cart/CartOverview";
 
-// Define the type for a pizza item
+// تعريف نوع الـ Pizza
 interface Pizza {
   id: string;
   name: string;
-  unitPrice: number;
-  ingredients: string[];
-  soldOut: boolean;
-  imageUrl: string;
+  description: string;
+  price: number;
+  unitPrice: number; // أضفنا هذه الخاصية
+  ingredients: string[]; // أضفنا هذه الخاصية
+  soldOut: boolean; // أضفنا هذه الخاصية
+  imageUrl: string; // أضفنا هذه الخاصية
 }
 
+// مكون Menu
 function Menu() {
-  const menu = useLoaderData<Pizza[]>(); // Type the loader data as an array of Pizza
-  return ( <> 
-    <ul className="py-20 bg-[#EFEEE8]">
+  const menu = useLoaderData() as Pizza[]; // تحديد نوع البيانات المحملة هنا
+
+  return (
+    <ul className="divide-y divide-stone-200 px-2">
       {menu.map((pizza) => (
         <MenuItem pizza={pizza} key={pizza.id} />
       ))}
-
     </ul>
-  <CartOverview/>
-  </>
-
   );
 }
 
-// Update loader to return typed data
-export async function loader() {
-  const menu = await getMenu();
-  return menu ; // Type the return value of the loader function
+// الدالة loader لتحميل البيانات
+export async function loader(): Promise<any[]> {
+  const menu = await getMenu(); // جلب البيانات من الـ API
+  return menu;
 }
 
 export default Menu;

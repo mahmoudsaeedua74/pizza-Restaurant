@@ -25,17 +25,17 @@ function UpdateOrder({ order }: UpdateOrderProps) {
 
 export default UpdateOrder;
 
-export async function action({
-  params,
-}: {
-  params: { orderId: string };
-}) {
-  const data = { priority: true };
+import { ActionFunctionArgs } from "react-router-dom";
 
-  // تحديث الطلب باستخدام orderId
-  if (params?.orderId) {
-    await updateOrder(params.orderId, data);
+export async function action({ params }: ActionFunctionArgs): Promise<null> {
+  const orderId = params?.orderId;
+
+  if (!orderId) {
+    throw new Error("Order ID is required for updating.");
   }
+
+  const data = { priority: true };
+  await updateOrder(orderId, data);
 
   return null;
 }

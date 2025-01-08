@@ -7,3 +7,8 @@ export const store = configureStore({
     userSlice,
   },
 });
+// نوع `RootState` للحصول على الحالة الكاملة
+export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>;
+
+export default store;

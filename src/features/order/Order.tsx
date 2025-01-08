@@ -1,4 +1,8 @@
-import { useLoaderData } from "react-router-dom";
+import {
+  LoaderFunctionArgs,
+  useFetcher,
+  useLoaderData,
+} from "react-router-dom";
 import {
   calcMinutesLeft,
   formatCurrency,
@@ -6,7 +10,9 @@ import {
 } from "../../utils/helper";
 import OrderItem from "./OrderItem";
 import { getOrder } from "../../services/apiRestaurant";
+import { useEffect } from "react";
 
+// تعريف الواجهات لأنواع البيانات
 interface CartItem {
   id: string;
   quantity: number;
@@ -25,7 +31,17 @@ interface OrderData {
 }
 
 function Order() {
-  const order = useLoaderData() as OrderData;
+  const order = useLoaderData() as OrderData; // تحميل البيانات من الـ loader
+  const fetcher = useFetcher(); // لاستخدام fetcher لجلب البيانات بشكل ديناميكي
+
+  // تحميل البيانات إذا لم تكن موجودة أو إذا كانت الحالة idle
+  useEffect(() => {
+    if (!fetcher.data && fetcher.state === "idle") {
+      fetcher.load("/menu");
+    }
+  }, [fetcher]);
+
+  // استخراج البيانات من order
   const {
     id,
     status,
@@ -36,13 +52,14 @@ function Order() {
     cart,
   } = order;
 
+  // حساب الوقت المتبقي للتوصيل
   const deliveryIn = calcMinutesLeft(estimatedDelivery);
 
   return (
     <div className="space-y-8 px-4 py-6 container mx-auto mt-20">
+      {/* العنوان وحالة الطلب */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Order #{id} status</h2>
-
         <div className="space-x-2">
           {priority && (
             <span className="rounded-full bg-red-500 px-3 py-1 text-sm font-semibold uppercase tracking-wide text-red-50">
@@ -55,6 +72,7 @@ function Order() {
         </div>
       </div>
 
+      {/* عرض الوقت المتبقي للتوصيل */}
       <div className="flex flex-wrap items-center justify-between gap-2 bg-stone-200 px-6 py-5">
         <p className="font-medium">
           {deliveryIn >= 0
@@ -66,12 +84,14 @@ function Order() {
         </p>
       </div>
 
+      {/* عرض تفاصيل المنتجات في الطلب */}
       <ul className="dive-stone-200 divide-y border-b border-t">
         {cart.map((item, index) => (
           <OrderItem item={item} key={index} />
         ))}
       </ul>
 
+      {/* عرض الأسعار الإجمالية للطلب */}
       <div className="space-y-2 bg-stone-200 px-6 py-5">
         <p className="text-sm font-medium text-stone-600">
           Price pizza: {formatCurrency(orderPrice)}
@@ -89,9 +109,17 @@ function Order() {
   );
 }
 
-export async function loader({ params }: { params: { orderId: string } }) {
-  const order = await getOrder(params.orderId);  // جلب البيانات بناءً على orderId
+// تعريف loader لجلب بيانات الطلب باستخدام orderId
+
+export async function loader({ params }: LoaderFunctionArgs) {
+  const orderId = params?.orderId;
+
+  if (!orderId) {
+    throw new Error("Order ID is required.");
+  }
+
+  const order = await getOrder(orderId);
+
   return order;
 }
-
 export default Order;

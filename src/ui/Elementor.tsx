@@ -5,7 +5,7 @@ import Button from "./Button";
 
 // Animation variants
 const fadeInVariants = {
-  hidden: (direction) => ({
+  hidden: (direction: number | string) => ({
     opacity: 0,
     x: direction === "left" ? -60 : 60,
   }),
