@@ -6,23 +6,28 @@ import EmptyCart from "../cart/EmptyCart";
 import Button from "../../ui/Button";
 import { formatCurrency } from "../../utils/helper";
 import { createOrder } from "../../services/apiRestaurant";
-import { AppDispatch, RootState, store } from "../../store";
+import { AppDispatch, store } from "../../store";
 import { fetchAddress } from "../user/useSlice";
 
-// Define types for OrderFormData and FormErrors
+interface MenuItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+interface OrderFormData {
+  customer: string;
+  phone: string;
+  address: string;
+  priority: boolean;
+  cart: MenuItem[];
+}
+
 interface FormErrors {
   phone?: string;
 }
 
-interface Order {
-  customer: string;
-  phone: string;
-  address: string;
-  cart: any[];  // You might want to define the exact type of items in the cart
-  priority: boolean;
-}
-
-// Validate the phone number format using a regular expression
 const isValidPhone = (str: string): boolean =>
   /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(
     str
@@ -34,22 +39,26 @@ function CreateOrder() {
   const [withPriority, setWithPriority] = useState<boolean>(false);
   const isSubmitting = navigation.state === "submitting";
 
-  // Redux state
   const {
     username,
     status: addressStatus,
     position,
     address,
     error: errorAddress,
-  } = useSelector((state: RootState) => state.userSlice);
+  } = useSelector((state) => state.userSlice);
 
   const isLoadingAddress = addressStatus === "loading";
   const formErrors = useActionData() as FormErrors | null;
   const cartOrder = useSelector(getCarts);
-  const cart = cartOrder; // Ensure this is a MenuItem[] array
+  const cart = cartOrder;
   const totalCartPrice = useSelector(getTotalPrice);
   const priorityPrice = withPriority ? totalCartPrice * 0.2 : 0;
   const totalPrice = totalCartPrice + priorityPrice;
+
+  function handleButton(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    dispatch(fetchAddress());
+  }
 
   if (!cart.length) return <EmptyCart />;
 
@@ -100,16 +109,12 @@ function CreateOrder() {
               </p>
             )}
           </div>
-
           {!position.latitude && !position.longitude && (
             <span className="absolute right-[3px] top-[3px] z-50 md:right-[5px] md:top-[5px]">
               <Button
                 disabled={isLoadingAddress}
                 type="small"
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(fetchAddress());
-                }}
+                onClick={handleButton}
               >
                 Get position
               </Button>
@@ -144,20 +149,24 @@ function CreateOrder() {
   );
 }
 
-// Correctly typing the action function
-export async function action({ request }: { request: Request }) {
+export async function action({
+  request,
+}: {
+  request: Request;
+}): Promise<Response | FormErrors> {
   const formData = await request.formData();
-  const data = Object.fromEntries(formData);
+  const data = Object.fromEntries(formData) as Record<
+    string,
+    FormDataEntryValue
+  >;
 
-  const order: Order = {
+  const order: OrderFormData = {
     customer: data.customer as string,
     phone: data.phone as string,
     address: data.address as string,
-    cart: JSON.parse(data.cart as string), // Ensure this is a MenuItem[] array
-    priority: data.priority === "true",
+    priority: data.priority === "true", 
+    cart: JSON.parse(data.cart as string),
   };
-
-  console.log(order);
 
   const errors: FormErrors = {};
   if (!isValidPhone(order.phone)) {
@@ -167,13 +176,11 @@ export async function action({ request }: { request: Request }) {
 
   if (Object.keys(errors).length > 0) return errors;
 
-  // If everything is okay, create new order and redirect
-  const newOrder = await createOrder(order);
+  // Sending only the cart array now
+  await createOrder(order.cart);  // Only send the cart here, not the whole order object
 
-  // Do NOT overuse
   store.dispatch(clearItem());
 
-  return redirect(`/order/${newOrder.id}`);
+  return redirect(`/order/${order.customer}`);
 }
-
 export default CreateOrder;
