@@ -1,5 +1,14 @@
 {
-  "files": [],
+  "compilerOptions": {
+    "target": "esnext", 
+    "module": "commonjs", 
+    "strict": true, 
+    "skipLibCheck": true, 
+    "outDir": "./dist", 
+    "esModuleInterop": true 
+  },
+  "include": ["src/**/*"], 
+  "exclude": ["node_modules", "dist"], 
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }

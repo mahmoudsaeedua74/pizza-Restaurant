@@ -6,7 +6,7 @@ import EmptyCart from "../cart/EmptyCart";
 import Button from "../../ui/Button";
 import { formatCurrency } from "../../utils/helper";
 import { createOrder } from "../../services/apiRestaurant";
-import { AppDispatch, store } from "../../store";
+import { AppDispatch, RootState, store } from "../../store";
 import { fetchAddress } from "../user/useSlice";
 
 // Define types for OrderFormData and FormErrors
@@ -48,7 +48,7 @@ function CreateOrder() {
     position,
     address,
     error: errorAddress,
-  } = useSelector((state) => state.userSlice);
+  } = useSelector((state: RootState) => state.userSlice);
 
   const isLoadingAddress = addressStatus === "loading";
   const formErrors = useActionData() as FormErrors | null;
@@ -112,7 +112,7 @@ function CreateOrder() {
               </p>
             )}
           </div>
-          {!position.latitude && !position.longitude && (
+          {position && !position.latitude && !position.longitude && (
             <span className="absolute right-[3px] top-[3px] z-50 md:right-[5px] md:top-[5px]">
               <Button
                 disabled={isLoadingAddress}
