@@ -1,4 +1,8 @@
-import { useFetcher, useLoaderData } from "react-router-dom";
+import {
+  LoaderFunctionArgs,
+  useFetcher,
+  useLoaderData,
+} from "react-router-dom";
 import {
   calcMinutesLeft,
   formatCurrency,
@@ -72,7 +76,7 @@ function Order() {
       <div className="flex flex-wrap items-center justify-between gap-2 bg-stone-200 px-6 py-5">
         <p className="font-medium">
           {deliveryIn >= 0
-            ? `Only ${deliveryIn} minutes left 😃`
+            ? `Only ${calcMinutesLeft(estimatedDelivery)} minutes left 😃`
             : "Order should have arrived"}
         </p>
         <p className="text-xs text-stone-500">
@@ -81,7 +85,7 @@ function Order() {
       </div>
 
       {/* عرض تفاصيل المنتجات في الطلب */}
-      <ul className="divide-stone-200 divide-y border-b border-t">
+      <ul className="dive-stone-200 divide-y border-b border-t">
         {cart.map((item, index) => (
           <OrderItem item={item} key={index} />
         ))}
@@ -106,13 +110,16 @@ function Order() {
 }
 
 // تعريف loader لجلب بيانات الطلب باستخدام orderId
-export async function loader({
-  params,
-}: {
-  params: { orderId: string };
-}) {
-  const order = await getOrder(params.orderId);
+
+export async function loader({ params }: LoaderFunctionArgs) {
+  const orderId = params?.orderId;
+
+  if (!orderId) {
+    throw new Error("Order ID is required.");
+  }
+
+  const order = await getOrder(orderId);
+
   return order;
 }
-
 export default Order;

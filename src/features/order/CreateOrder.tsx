@@ -8,22 +8,6 @@ import { formatCurrency } from "../../utils/helper";
 import { createOrder } from "../../services/apiRestaurant";
 import { AppDispatch, store } from "../../store";
 import { fetchAddress } from "../user/useSlice";
-
-interface MenuItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-interface OrderFormData {
-  customer: string;
-  phone: string;
-  address: string;
-  priority: boolean;
-  cart: MenuItem[];
-}
-
 interface FormErrors {
   phone?: string;
 }
@@ -45,7 +29,7 @@ function CreateOrder() {
     position,
     address,
     error: errorAddress,
-  } = useSelector((state) => state.userSlice);
+  } = useSelector((state: any) => state.userSlice);
 
   const isLoadingAddress = addressStatus === "loading";
   const formErrors = useActionData() as FormErrors | null;
@@ -149,23 +133,21 @@ function CreateOrder() {
   );
 }
 
+interface FormErrors {
+  phone?: string;
+}
+
 export async function action({
   request,
 }: {
   request: Request;
 }): Promise<Response | FormErrors> {
   const formData = await request.formData();
-  const data = Object.fromEntries(formData) as Record<
-    string,
-    FormDataEntryValue
-  >;
-
-  const order: OrderFormData = {
-    customer: data.customer as string,
-    phone: data.phone as string,
-    address: data.address as string,
-    priority: data.priority === "true", 
-    cart: JSON.parse(data.cart as string),
+  const data = Object.fromEntries(formData) as Record<string, string>; // التعديل هنا لتحديد النوع بشكل أفضل
+  const order = {
+    ...data,
+    cart: JSON.parse(data.cart),
+    priority: data.priority === "true",
   };
 
   const errors: FormErrors = {};
@@ -176,11 +158,13 @@ export async function action({
 
   if (Object.keys(errors).length > 0) return errors;
 
-  // Sending only the cart array now
-  await createOrder(order.cart);  // Only send the cart here, not the whole order object
+  // If everything is okay, create new order and redirect
+  const newOrder = await createOrder(order);
 
+  // Do NOT overuse
   store.dispatch(clearItem());
 
-  return redirect(`/order/${order.customer}`);
+  return redirect(`/order/${newOrder.id}`);
 }
+
 export default CreateOrder;
